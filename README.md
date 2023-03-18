@@ -29,6 +29,9 @@ Here we explain each method within the contract and how they are used:
 
 ## Storage Model
 
+![Preview-1](https://user-images.githubusercontent.com/20683538/226114657-869ba832-f870-4571-9692-ff25347f54c3.png)
+
+
 # Project Feautures
 ## NFT Gating system
 Producers can set a set of rules in order to sell their tokens. They can limit the buyers to accounts which have bought several other tokens by the producer (gating), or they can provide tiered discounts.
