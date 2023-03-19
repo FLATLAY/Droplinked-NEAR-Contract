@@ -42,4 +42,5 @@ These rules (ruleset) are deployed on droplinked.com before the customer purchas
 droplinked.com provides a storefront in wich the producers can upload their NFTs and set their prices and rulesets, while customers can explore the NFTs and buy them. These NFT's represent both digital and physical goods.
 
 
- 
+## Deployed Contract
+Account_id for deployed contract : 4bb5d093c0c0e1b4874c41216cdabc5ef1c81c5535b25788202f2a8ce145a7d7
