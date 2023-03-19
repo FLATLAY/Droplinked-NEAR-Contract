@@ -112,18 +112,27 @@ impl DroplinkedStorage {
             price
         };
         self.metadatas.insert(&token_id,&metadata);
-
         
+        // check if holders exist for this account if not create new
+        if !self.owners.contains_key(&account_id){
+            let mut tokens = Vector::new(format!("s{}",block_timestamp_ms()).as_str().as_bytes().to_vec());
+            self.owners.insert(&account_id,&tokens);
+        }
         let mut account_holders = self.owners.get(&account_id).unwrap();
         for i in 0..account_holders.len(){
-            let mut t = self.holders.get(&account_holders.get(i).unwrap()).unwrap();
+            env::log_str("loop");
+            let holder_id = account_holders.get(i).unwrap();
+            let mut t = self.holders.get(&holder_id).unwrap();
+            env::log_str(format!("{} =? {}",t.token_id, token_id).as_str());
             if t.token_id == token_id{
+                env::log_str("found");
                 t.rem_amount += amount;
                 t.amount += amount;
-                self.holders.insert(&account_holders.get(i).unwrap(),&t);
-                return account_holders.get(i).unwrap();
+                self.holders.insert(&holder_id,&t);
+                return holder_id;
             }
         }
+        env::log_str("not found");
         
         self.holders_cnt += 1;
         let holder_id = self.holders_cnt;
@@ -348,6 +357,7 @@ impl DroplinkedStorage {
         approved_id
     }
     
+
     pub fn get_approved(&self, approved_id : u64) -> Option<String>{
         let approved = self.approved.get(&approved_id).unwrap();
         let json = format!(r#"{{"approved_id":{},"holder_id":{},"amount":{},"comission":{},"owner_account":"{}","publisher_account":"{}","token_id":{}}}"#,approved_id,approved.holder_id,approved.amount,approved.comission,approved.owner_account,approved.publisher_account,approved.token_id);

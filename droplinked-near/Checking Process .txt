@@ -1,0 +1,16 @@
+Checking Process : 
+
+1. Create 3 different accounts : Prod, Pub, Cust, Deployer : DONE
+2. Mint Products to Prod : Pa, Pb with different Metadata (Use real metadata) : DONE
+3. Check Holders, Owners, token_metadata, token_id, holder_id : DONE
+4. Do a publishRequest from Pub to Prod, using holder_id,prodAcc,amount,comission for product Pa : DONE
+5. Check holder's remaining amount, requests, request_id, pubRequests, prodRequests : (RETURN ID instead of Actual Requests in pubRequests,..) - DONE
+6. Do another publishRequest from pub to Prod, for product Pb : DONE
+7. Do 5 again : DONE
+8. Cancel first request : DONE
+9. do 5 again : DONE
+10. Accept second request with pub account, then with prod account : DONE,DONE
+11. Do 5, and check approveds, producer_approved, pub_approved : DONE
+12. Do a disapprove, on the approved one, with a amount less than its original amount, and check everything : DONE
+13. Do 12 again with the remaining amount, and check if it removes that approved or not : DONE
+14. Buy Product (Payable with stablecoin) and check the transfers 
