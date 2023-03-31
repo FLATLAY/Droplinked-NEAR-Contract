@@ -1,3 +1,6 @@
+mod event_handler;
+
+use event_handler::{MintEvent, DroplinkedEventData, PublishRequestEvent, CancelEvent, DisapproveEvent, ApproveEvent};
 use near_sdk::borsh::{self, BorshDeserialize, BorshSerialize};
 use near_sdk::collections::{LookupMap, Vector};
 use near_sdk::env::block_timestamp_ms;
@@ -95,7 +98,7 @@ impl DroplinkedStorage {
 
     #[payable]
     pub fn mint(&mut self, name : String, token_uri : String, checksum : String, price : u128,amount : u64) -> u64{
-        if(near_sdk::env::attached_deposit() < 780000000000000000000){
+        if near_sdk::env::attached_deposit() < 780000000000000000000{
             near_sdk::env::panic_str("deposit is too low");
         }
         let account_id = env::signer_account_id();
@@ -120,10 +123,10 @@ impl DroplinkedStorage {
         
         // check if holders exist for this account if not create new
         if !self.owners.contains_key(&account_id){
-            let mut tokens = Vector::new(format!("s{}",block_timestamp_ms()).as_str().as_bytes().to_vec());
+            let tokens = Vector::new(format!("s{}",block_timestamp_ms()).as_str().as_bytes().to_vec());
             self.owners.insert(&account_id,&tokens);
         }
-        let mut account_holders = self.owners.get(&account_id).unwrap();
+        let account_holders = self.owners.get(&account_id).unwrap();
         for i in 0..account_holders.len(){
             let holder_id = account_holders.get(i).unwrap();
             let mut t = self.holders.get(&holder_id).unwrap();
@@ -155,6 +158,7 @@ impl DroplinkedStorage {
             self.owners.insert(&account_id,&tokens);
         }
         self.total_supply += amount;
+        DroplinkedEventData::Mint(MintEvent {token_id : token_id.to_string(),holder_id : holder_id.to_string(),owner_id:account_id.to_string() }).emit();
         holder_id
     }
 
@@ -192,7 +196,7 @@ impl DroplinkedStorage {
 
     #[payable]
     pub fn publish_request(&mut self, producer_account : AccountId, amount : u64, holder_id : u64, comission : u8) -> u64{
-        if(env::attached_deposit() < 630000000000000000000){
+        if env::attached_deposit() < 630000000000000000000 {
             env::panic_str("deposit is too low");
         }
         let account_id = env::signer_account_id();
@@ -243,6 +247,8 @@ impl DroplinkedStorage {
             requests.push(&request_id);
             self.producer_requests.insert(&producer_account,&requests);
         }
+        // emit event
+        DroplinkedEventData::PublishRequest(PublishRequestEvent { request_id: request_id.to_string(), holder_id: holder_id.to_string(), owner_id : request.producer.to_string(), commission : comission.to_string(), publisher_id : request.publisher.to_string()}).emit();
         request_id       
     }
 
@@ -282,7 +288,7 @@ impl DroplinkedStorage {
 
     #[payable]
     pub fn approve(&mut self,request_id : u64) -> u64{
-        if(env::attached_deposit() < 770000000000000000000){
+        if env::attached_deposit() < 770000000000000000000 {
             env::panic_str("deposit is too low");
         }
         let account_id = env::signer_account_id();
@@ -363,6 +369,8 @@ impl DroplinkedStorage {
         self.producer_requests.insert(&request.producer,&producer_requests);
         //remove the request from the requests_objects dictionary
         self.requests_objects.remove(&request_id);
+        // emit event
+        DroplinkedEventData::Approve(ApproveEvent{approved_id : approved_id.to_string(), holder_id : request.holder_id.to_string(), request_id : request_id.to_string(), owner_id : request.producer.to_string()}).emit();
         approved_id
     }
     
@@ -375,7 +383,7 @@ impl DroplinkedStorage {
 
     #[payable]
     pub fn disapprove(&mut self,approved_id : u64, amount : u64){
-        if (env::attached_deposit() < 600000000000000000000){
+        if  env::attached_deposit() < 600000000000000000000 {
             env::panic_str("deposit is too low");
         }
         let account_id = env::signer_account_id();
@@ -405,13 +413,15 @@ impl DroplinkedStorage {
             approved.amount -= amount;
             self.approved.insert(&approved_id,&approved);
         }
+        // emit event
+        DroplinkedEventData::Disapprove(DisapproveEvent {approved_id : approved_id.to_string(), holder_id : approved.holder_id.to_string(), owner_id : env::signer_account_id().to_string()}).emit();
     }
 
 
     #[payable]
     pub fn cancel_request(&mut self,request_id : u64){
         //TODO this amount should be calculated again
-        if(env::attached_deposit() < 570000000000000000000){
+        if env::attached_deposit() < 570000000000000000000{
             env::panic_str("deposit is too low");
         }
         let account_id = env::signer_account_id();
@@ -428,6 +438,8 @@ impl DroplinkedStorage {
         publisher_requests.swap_remove(index_of_request as u64);
         self.publisher_requests.insert(&request.publisher,&publisher_requests);
         self.requests_objects.remove(&request_id);
+        // emit event
+        DroplinkedEventData::Cancel(CancelEvent { request_id: request_id.to_string(), holder_id: request.holder_id.to_string(), owner_id: request.producer.to_string() }).emit();
     }
 
     pub fn producers_approved(&self, producer_account : AccountId) -> Option<Vec<u64>>{
