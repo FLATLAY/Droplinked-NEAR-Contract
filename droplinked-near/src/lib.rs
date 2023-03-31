@@ -92,7 +92,12 @@ impl DroplinkedStorage {
     pub fn get_ratio_verifier(self) -> AccountId{
         self.ratio_verifier
     }
+
+    #[payable]
     pub fn mint(&mut self, name : String, token_uri : String, checksum : String, price : u128,amount : u64) -> u64{
+        if(near_sdk::env::attached_deposit() < 780000000000000000000){
+            near_sdk::env::panic_str("deposit is too low");
+        }
         let account_id = env::signer_account_id();
         let metadata_hash = base16::encode_lower(&env::sha256(format!("{}{}{}{}",name,token_uri,checksum,price).as_bytes()));
         let token_id = {
@@ -120,19 +125,15 @@ impl DroplinkedStorage {
         }
         let mut account_holders = self.owners.get(&account_id).unwrap();
         for i in 0..account_holders.len(){
-            env::log_str("loop");
             let holder_id = account_holders.get(i).unwrap();
             let mut t = self.holders.get(&holder_id).unwrap();
-            env::log_str(format!("{} =? {}",t.token_id, token_id).as_str());
             if t.token_id == token_id{
-                env::log_str("found");
                 t.rem_amount += amount;
                 t.amount += amount;
                 self.holders.insert(&holder_id,&t);
                 return holder_id;
             }
         }
-        env::log_str("not found");
         
         self.holders_cnt += 1;
         let holder_id = self.holders_cnt;
@@ -189,7 +190,11 @@ impl DroplinkedStorage {
         Some(json)
     }
 
+    #[payable]
     pub fn publish_request(&mut self, producer_account : AccountId, amount : u64, holder_id : u64, comission : u8) -> u64{
+        if(env::attached_deposit() < 630000000000000000000){
+            env::panic_str("deposit is too low");
+        }
         let account_id = env::signer_account_id();
         
         //-----------------------Cand be simplified using Maps and Sets-----------------------
@@ -275,7 +280,11 @@ impl DroplinkedStorage {
         Some(json)
     }
 
+    #[payable]
     pub fn approve(&mut self,request_id : u64) -> u64{
+        if(env::attached_deposit() < 770000000000000000000){
+            env::panic_str("deposit is too low");
+        }
         let account_id = env::signer_account_id();
         let request_wrapped = self.requests_objects.get(&request_id);
         if request_wrapped.is_none(){
@@ -364,7 +373,11 @@ impl DroplinkedStorage {
         Some(json)
     }
 
+    #[payable]
     pub fn disapprove(&mut self,approved_id : u64, amount : u64){
+        if (env::attached_deposit() < 600000000000000000000){
+            env::panic_str("deposit is too low");
+        }
         let account_id = env::signer_account_id();
         let approved = self.approved.get(&approved_id).unwrap();
         if approved.owner_account != account_id{
@@ -394,7 +407,13 @@ impl DroplinkedStorage {
         }
     }
 
+
+    #[payable]
     pub fn cancel_request(&mut self,request_id : u64){
+        //TODO this amount should be calculated again
+        if(env::attached_deposit() < 570000000000000000000){
+            env::panic_str("deposit is too low");
+        }
         let account_id = env::signer_account_id();
         let request = self.requests_objects.get(&request_id).unwrap();
         if request.publisher != account_id{
